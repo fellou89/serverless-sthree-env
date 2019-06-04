@@ -23,6 +23,9 @@ module.exports = class SthreeEnvPlugin {
         }
         let body = data.Body;
 
+        // TODO: append to list instead of re-assign, 
+        // because of setting the entire object (which is then used by cfn in a diff)
+        // it'll think it's adding "new" filters when it should be at most updating "old" ones
         this._serverless.service.functions.logs.events = JSON.parse(body);
 
         return true
