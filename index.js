@@ -3,7 +3,8 @@ module.exports = class SthreeEnvPlugin {
     this._serverless = serverless;
     this._options = options;
     this.hooks = {
-      'before:package:createDeploymentArtifacts': this.beforeDeployResource.bind(this),
+      //'before:package:createDeploymentArtifacts': this.beforeDeployResource.bind(this),
+      'after:s3sync:sync': this.beforeDeployResource.bind(this),
     };
   }
 
