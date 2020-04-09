@@ -4,7 +4,7 @@ module.exports = class SthreeEnvPlugin {
     this._options = options;
     this.hooks = {
       //'before:package:createDeploymentArtifacts': this.beforeDeployResource.bind(this),
-      'after:s3sync:sync': this.beforeDeployResource.bind(this),
+      'before:deploy:finalize': this.beforeDeployResource.bind(this),
     };
   }
 
