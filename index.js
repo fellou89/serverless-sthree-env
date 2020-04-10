@@ -3,8 +3,7 @@ module.exports = class SthreeEnvPlugin {
     this._serverless = serverless;
     this._options = options;
     this.hooks = {
-      //'before:package:createDeploymentArtifacts': this.beforeDeployResource.bind(this),
-      'before:deploy:finalize': this.beforeDeployResource.bind(this),
+      'before:package:createDeploymentArtifacts': this.beforeDeployResource.bind(this),
     };
   }
 
@@ -29,6 +28,7 @@ module.exports = class SthreeEnvPlugin {
         // it'll think it's adding "new" filters when it should be at most updating "old" ones
         this._serverless.service.functions.logs.events = JSON.parse(body);
 
+        this._serverless.cli.log('SthreeEnvPlugin : functions logs events were set');
         return true;
       }.bind(this),
     );
