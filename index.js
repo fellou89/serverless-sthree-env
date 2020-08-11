@@ -3,6 +3,7 @@ module.exports = class SthreeEnvPlugin {
     this._serverless = serverless;
     this._options = options;
     this.hooks = {
+      // this has to happen before the stack is built so the lambda functions are configured
       'before:package:createDeploymentArtifacts': this.beforeDeployResource.bind(this),
     };
   }
@@ -11,27 +12,31 @@ module.exports = class SthreeEnvPlugin {
     this._serverless.cli.log('SthreeEnvPlugin : ' + 'is running');
     let stage = this._options.stage ? this._options.stage : this._serverless.service.provider.stage;
     let region = this._serverless.service.provider.region;
+    let logLists = this._serverless.service.custom.Loglists;
 
-    let resourceName = this._serverless.service.custom.Loglist.Bucket;
-    let keyName = this._serverless.service.custom.Loglist.Key;
+    return Promise.all(logLists.map((loglist) => {
+      let resourceName = loglist.Bucket;
+      let keyName = loglist.Key;
 
-    return this.getSThreeBucket(resourceName, keyName, stage, region).then(
-      function(data, err) {
-        this._serverless.cli.log('SthreeEnvPlugin : getting config from bucket ' + resourceName);
-        if (err) {
-          this._serverless.cli.log('SthreeEnvPlugin : ' + err);
-        }
-        let body = data.Body;
+      this.getSThreeBucket(resourceName, keyName, stage, region).then(
+        function(data, err) {
+          this._serverless.cli.log('SthreeEnvPlugin : getting config from bucket ' + resourceName + ' with key ' + keyName);
+          if (err) {
+            this._serverless.cli.log('SthreeEnvPlugin : ' + err);
+          }
+          let body = data.Body;
+          var functionName = loglist.Function;
 
-        // TODO: append to list instead of re-assign,
-        // because of setting the entire object (which is then used by cfn in a diff)
-        // it'll think it's adding "new" filters when it should be at most updating "old" ones
-        this._serverless.service.functions.logs.events = JSON.parse(body);
+          this._serverless.cli.log(body);
 
-        this._serverless.cli.log('SthreeEnvPlugin : functions logs events were set');
-        return true;
-      }.bind(this),
-    );
+          // TODO: append to list instead of re-assign,
+          // because of setting the entire object (which is then used by cfn in a diff)
+          // it'll think it's adding "new" filters when it should be at most updating "old" ones
+          this._serverless.service.functions[functionName].events = JSON.parse(body);
+          return true
+        }.bind(this),
+      );
+    }));
   }
 
   getSThreeBucket(bucketName, keyName, stage, region) {
@@ -46,4 +51,4 @@ module.exports = class SthreeEnvPlugin {
       region,
     );
   }
-};
+}
